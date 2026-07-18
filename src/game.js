@@ -1,7 +1,7 @@
 const TILE_SIZE = 64;
 const PLAYER_SCALE = 0.5; // personagem pequeno em relação à tela, estilo GBA
 const SPAWN_OFFSET = TILE_SIZE; // onde o personagem aparece ao entrar num mapa novo (1 tile da borda)
-const MOVE_DURATION = 160; // ms pra andar 1 tile — movimento em grade, estilo Pokémon GBA
+const MOVE_DURATION = 600; // ms pra andar 1 tile — movimento em grade, estilo Pokémon GBA
 const JUMP_DURATION = 420; // ms
 const JUMP_HEIGHT = 22; // px de deslocamento visual no pico do pulo
 
@@ -179,6 +179,13 @@ function preloadCharacter(scene, def) {
   });
 }
 
+// frameRate calculado a partir do MOVE_DURATION: 1 ciclo de animação = 1 tile andado,
+// então os passos da animação acompanham a velocidade real do personagem (se mudar
+// MOVE_DURATION, a animação se ajusta sozinha, sem precisar mexer aqui também).
+function walkFrameRate(frameCount) {
+  return frameCount / (MOVE_DURATION / 1000);
+}
+
 function createCharacterAnims(scene, def) {
   if (def.kind === "full") {
     ["front", "back", "left", "right"].forEach((dir) => {
@@ -186,11 +193,11 @@ function createCharacterAnims(scene, def) {
       for (let i = 1; i <= def.walkCounts[dir]; i++) {
         frames.push({ key: `${def.id}_${dir}_walk${i}` });
       }
-      scene.anims.create({ key: `${def.id}-walk-${dir}`, frames, frameRate: 8, repeat: -1 });
+      scene.anims.create({ key: `${def.id}-walk-${dir}`, frames, frameRate: walkFrameRate(frames.length), repeat: -1 });
     });
   } else {
     const frames = [1, 2, 3].map((i) => ({ key: `${def.id}_side_walk${i}` }));
-    scene.anims.create({ key: `${def.id}-walk-side`, frames, frameRate: 8, repeat: -1 });
+    scene.anims.create({ key: `${def.id}-walk-side`, frames, frameRate: walkFrameRate(frames.length), repeat: -1 });
   }
 }
 
