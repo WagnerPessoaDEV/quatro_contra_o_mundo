@@ -94,7 +94,7 @@ function snapToGrid(v) {
   return Math.round(v / TILE_SIZE) * TILE_SIZE;
 }
 
-// ground: "grass" ou "sand" (Deserto) — usado só quando a cena não tem backgroundImage.
+// ground: "grass" ou "sand" — usado só quando a cena não tem backgroundImage.
 // Textura procedural com seed fixa (mesma semente = mesmo resultado sempre, não fica
 // sorteando de novo a cada load).
 function drawGround(scene, width, height, ground) {
@@ -226,6 +226,7 @@ class PreloadScene extends Phaser.Scene {
   preload() {
     CHARACTERS.forEach((def) => preloadCharacter(this, def));
     this.load.image("vale_bg", "Vale-do-eco-verde.png");
+    this.load.image("praia_bg", "praia-eco-brisa.png");
   }
 
   create() {
@@ -243,6 +244,7 @@ class BiomeScene extends Phaser.Scene {
     this.backgroundImage = opts.backgroundImage || null; // chave de textura pra fundo estático (cena pintada inteira)
     this.exits = opts.exits; // { right: 'OutraCena', left: ..., top: ..., bottom: ... }
     this.obstacleTiles = opts.obstacleTiles || []; // [tx, ty, "rock"|"none"]
+    this.spawnOverride = opts.spawnOverride || null; // { left/right/top/bottom: {x, y, facing} } — ponto de entrada fixo, ignora a posição de saída da cena anterior
   }
 
   create(data) {
@@ -308,6 +310,9 @@ class BiomeScene extends Phaser.Scene {
   computeSpawn(data) {
     if (!data || !data.enterFrom) {
       return { x: snapToGrid(this.worldWidth / 2), y: snapToGrid(this.worldHeight / 2), facing: "front" };
+    }
+    if (this.spawnOverride && this.spawnOverride[data.enterFrom]) {
+      return this.spawnOverride[data.enterFrom];
     }
     switch (data.enterFrom) {
       case "left":
@@ -437,7 +442,7 @@ const valeScene = new BiomeScene("ValeDoEcoVerde", {
   worldWidth: 2816, // 44 tiles
   worldHeight: 1536, // 24 tiles
   backgroundImage: "vale_bg",
-  exits: { right: "Deserto" },
+  exits: { right: "PraiaEcoBrisa" },
   obstacleTiles: [
     // rio (bloqueado), com folgas exatamente nas pontes (nenhuma tile de ponte entra aqui)
     [26, 0, "none"], [27, 0, "none"],
@@ -494,21 +499,60 @@ const valeScene = new BiomeScene("ValeDoEcoVerde", {
     // ravina (borda oeste, intransponível)
     ...rectTiles(0, 4, 1, 11, "none"),
     // floresta densa (borda leste, intransponível) — para 2 tiles antes da borda do mapa
-    // pra não travar o spawn de quem entra vindo do Deserto (exits.right)
+    // pra não travar o spawn de quem entra vindo da Praia (exits.right)
     ...rectTiles(29, 0, 41, 8, "none")
   ]
 });
 
-const desertoScene = new BiomeScene("Deserto", {
-  worldWidth: 1600,
-  worldHeight: 1216,
-  ground: "sand",
+// Praia Eco Brisa: mesmo esquema do Vale — fundo pré-pintado (praia-eco-brisa.png, 2816x1536 =
+// exatamente 44x24 tiles), obstáculos só de colisão ("none", a arte já desenha água/árvore/
+// cabana/torre). Tiles mapeados com grade de 64px sobreposta na imagem pra achar as coordenadas
+// exatas de água/objetos — ainda pode precisar de ajuste fino depois de um playtest.
+const praiaScene = new BiomeScene("PraiaEcoBrisa", {
+  worldWidth: 2816, // 44 tiles
+  worldHeight: 1536, // 24 tiles
+  backgroundImage: "praia_bg",
   exits: { left: "ValeDoEcoVerde" },
+  // entrada fixa na calçada de pedra que atravessa o lago, em vez de herdar o y de onde
+  // o jogador saiu do Vale (que caía perto das cabanas, mais ao sul)
+  spawnOverride: { left: { x: 4 * TILE_SIZE, y: 9 * TILE_SIZE, facing: "right" } },
   obstacleTiles: [
-    [4, 6, "rock"], [4, 7, "rock"], [10, 3, "rock"], [11, 3, "rock"],
-    [15, 12, "rock"], [15, 13, "rock"], [16, 13, "rock"],
-    [21, 8, "rock"], [22, 8, "rock"], [6, 15, "rock"], [7, 15, "rock"], [7, 16, "rock"],
-    [18, 4, "rock"], [19, 4, "rock"], [3, 9, "rock"], [13, 16, "rock"]
+    // lago com calçada de pedra atravessando (canto superior esquerdo) — só os tiles de
+    // água bloqueiam, as pedras do caminho entre eles são atravessáveis
+    [7, 5, "none"],
+    [6, 6, "none"], [7, 6, "none"],
+    [5, 7, "none"], [6, 7, "none"],
+    [3, 8, "none"], [4, 8, "none"],
+    [7, 9, "none"], [8, 9, "none"],
+    [1, 10, "none"], [6, 10, "none"], [7, 10, "none"], [8, 10, "none"],
+    [0, 11, "none"], [1, 11, "none"], [3, 11, "none"], [6, 11, "none"], [7, 11, "none"], [8, 11, "none"],
+
+    // lagoa circular central
+    ...rectTiles(9, 8, 14, 11, "none"),
+
+    // cabana de madeira e árvores ao lado dela (canto esquerdo)
+    ...rectTiles(2, 13, 3, 15, "none"),
+    [0, 13, "none"], [1, 13, "none"], [0, 14, "none"], [1, 14, "none"],
+    [0, 17, "none"], [0, 18, "none"],
+
+    // torre de vigia (praia central)
+    [30, 13, "none"], [30, 14, "none"],
+
+    // pedras soltas na areia
+    [24, 13, "none"], [25, 13, "none"], [32, 13, "none"], [33, 13, "none"],
+    [35, 17, "none"], [20, 17, "none"], [17, 12, "none"], [18, 12, "none"],
+
+    // oceano: baía esquerda, faixa principal, subida pelo canto direito e faixa final da base
+    ...rectTiles(21, 17, 28, 17, "none"),
+    ...rectTiles(21, 18, 33, 21, "none"),
+    ...rectTiles(39, 10, 43, 21, "none"),
+    ...rectTiles(0, 22, 43, 23, "none"),
+
+    // coqueiros (só o tronco bloqueia)
+    [19, 6, "none"], [23, 7, "none"], [28, 6, "none"], [30, 4, "none"],
+    [33, 7, "none"], [35, 7, "none"], [34, 8, "none"], [36, 5, "none"],
+    [39, 5, "none"], [39, 6, "none"], [40, 4, "none"], [43, 8, "none"],
+    [9, 12, "none"], [10, 12, "none"], [11, 12, "none"], [12, 12, "none"], [13, 12, "none"], [14, 12, "none"]
   ]
 });
 
@@ -517,7 +561,7 @@ const config = {
   width: 800,
   height: 600,
   backgroundColor: "#2d2d2d",
-  scene: [PreloadScene, valeScene, desertoScene]
+  scene: [PreloadScene, valeScene, praiaScene]
 };
 
 window.game = new Phaser.Game(config);
