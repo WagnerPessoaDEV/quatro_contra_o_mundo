@@ -1,5 +1,5 @@
 const TILE_SIZE = 64;
-const PLAYER_SCALE = 0.5; // personagem pequeno em relação à tela, estilo GBA
+const PLAYER_SCALE = 0.4; // personagem pequeno em relação à tela, estilo GBA
 const SPAWN_OFFSET = TILE_SIZE; // onde o personagem aparece ao entrar num mapa novo (1 tile da borda)
 const MOVE_DURATION = 600; // ms pra andar 1 tile — movimento em grade, estilo Pokémon GBA
 const JUMP_DURATION = 420; // ms
