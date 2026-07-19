@@ -265,6 +265,11 @@ class BiomeScene extends Phaser.Scene {
     this.moveTo = { x: spawn.x, y: spawn.y };
 
     this.cameras.main.setBounds(0, 0, this.worldWidth, this.worldHeight);
+    this.cameras.main.setSize(this.scale.width, this.scale.height);
+    // scale.on persiste entre trocas de cena (o ScaleManager é global) — tira o listener antigo
+    // antes de recriar, senão empilha um handler novo toda vez que o jogador volta pra essa cena
+    this.scale.off("resize", this.handleResize, this);
+    this.scale.on("resize", this.handleResize, this);
 
     this.isJumping = false;
     this.jumpElapsed = 0;
@@ -290,9 +295,12 @@ class BiomeScene extends Phaser.Scene {
 
   // controles na tela pra celular/tablet (sem teclado) — só aparecem em dispositivos touch.
   // botões direcionais funcionam como "segurar" (igual as setas do teclado), pulo e trocar
-  // personagem funcionam como toque único (um "tap" = uma ação).
+  // personagem funcionam como toque único (um "tap" = uma ação). Posicionados a partir das
+  // bordas da tela atual (this.scale.width/height), não de um tamanho fixo — assim continuam
+  // no canto certo depois de um resize/rotação de tela (modo RESIZE preenche a tela toda).
   createTouchControls() {
     if (!this.sys.game.device.input.touch) return;
+    this.touchControlObjects = [];
 
     const makeButton = (x, y, label, onDown, onUp) => {
       const circle = this.add
@@ -302,7 +310,7 @@ class BiomeScene extends Phaser.Scene {
         .setDepth(1000)
         .setInteractive();
       const fontSize = label.length > 1 ? "13px" : "22px";
-      this.add
+      const text = this.add
         .text(x, y, label, { fontFamily: "monospace", fontSize, color: "#ffffff" })
         .setOrigin(0.5)
         .setScrollFactor(0)
@@ -312,17 +320,32 @@ class BiomeScene extends Phaser.Scene {
         circle.on("pointerup", onUp);
         circle.on("pointerout", onUp);
       }
+      this.touchControlObjects.push(circle, text);
     };
 
-    const dpadX = 90;
-    const dpadY = 490;
+    const w = this.scale.width;
+    const h = this.scale.height;
+    const margin = 110;
+    const dpadX = margin;
+    const dpadY = h - margin;
     makeButton(dpadX, dpadY - 55, "^", () => (this.virtualDir.up = true), () => (this.virtualDir.up = false));
     makeButton(dpadX, dpadY + 55, "v", () => (this.virtualDir.down = true), () => (this.virtualDir.down = false));
     makeButton(dpadX - 55, dpadY, "<", () => (this.virtualDir.left = true), () => (this.virtualDir.left = false));
     makeButton(dpadX + 55, dpadY, ">", () => (this.virtualDir.right = true), () => (this.virtualDir.right = false));
 
-    makeButton(700, 490, "PULO", () => (this.virtualJumpTap = true));
-    makeButton(700, 420, "C", () => (this.virtualSwitchTap = true));
+    makeButton(w - margin, h - margin, "PULO", () => (this.virtualJumpTap = true));
+    makeButton(w - margin, h - margin - 70, "C", () => (this.virtualSwitchTap = true));
+  }
+
+  destroyTouchControls() {
+    (this.touchControlObjects || []).forEach((obj) => obj.destroy());
+    this.touchControlObjects = [];
+  }
+
+  handleResize(gameSize) {
+    this.cameras.main.setSize(gameSize.width, gameSize.height);
+    this.destroyTouchControls();
+    this.createTouchControls();
   }
 
   spawnPlayer(x, y) {
@@ -603,12 +626,13 @@ const praiaScene = new BiomeScene("PraiaEcoBrisa", {
 
 const config = {
   type: Phaser.AUTO,
-  width: 800,
-  height: 600,
+  width: window.innerWidth,
+  height: window.innerHeight,
   backgroundColor: "#2d2d2d",
   scale: {
-    mode: Phaser.Scale.FIT, // redimensiona o canvas mantendo a proporção 800x600, sem esticar
-    autoCenter: Phaser.Scale.CENTER_BOTH
+    // preenche a tela inteira (sem tarjas pretas) — a câmera mostra mais ou menos mundo
+    // dependendo do formato da tela (celular vertical enxerga mais alto, desktop mais largo)
+    mode: Phaser.Scale.RESIZE
   },
   input: {
     activePointers: 3 // permite segurar uma seta do d-pad e tocar pulo/trocar personagem ao mesmo tempo
