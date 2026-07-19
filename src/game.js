@@ -276,11 +276,53 @@ class BiomeScene extends Phaser.Scene {
     this.switchKey = this.input.keyboard.addKey("C");
     this.jumpKey = this.input.keyboard.addKey("SPACE");
 
+    this.virtualDir = { up: false, down: false, left: false, right: false };
+    this.virtualJumpTap = false;
+    this.virtualSwitchTap = false;
+    this.createTouchControls();
+
     this.label = this.add
       .text(10, 10, "", { fontFamily: "monospace", fontSize: "16px", color: "#ffffff", backgroundColor: "#000000aa", padding: { x: 6, y: 4 } })
       .setScrollFactor(0)
       .setDepth(1000);
     this.updateLabel();
+  }
+
+  // controles na tela pra celular/tablet (sem teclado) — só aparecem em dispositivos touch.
+  // botões direcionais funcionam como "segurar" (igual as setas do teclado), pulo e trocar
+  // personagem funcionam como toque único (um "tap" = uma ação).
+  createTouchControls() {
+    if (!this.sys.game.device.input.touch) return;
+
+    const makeButton = (x, y, label, onDown, onUp) => {
+      const circle = this.add
+        .circle(x, y, 30, 0xffffff, 0.25)
+        .setStrokeStyle(2, 0xffffff, 0.6)
+        .setScrollFactor(0)
+        .setDepth(1000)
+        .setInteractive();
+      const fontSize = label.length > 1 ? "13px" : "22px";
+      this.add
+        .text(x, y, label, { fontFamily: "monospace", fontSize, color: "#ffffff" })
+        .setOrigin(0.5)
+        .setScrollFactor(0)
+        .setDepth(1001);
+      circle.on("pointerdown", onDown);
+      if (onUp) {
+        circle.on("pointerup", onUp);
+        circle.on("pointerout", onUp);
+      }
+    };
+
+    const dpadX = 90;
+    const dpadY = 490;
+    makeButton(dpadX, dpadY - 55, "^", () => (this.virtualDir.up = true), () => (this.virtualDir.up = false));
+    makeButton(dpadX, dpadY + 55, "v", () => (this.virtualDir.down = true), () => (this.virtualDir.down = false));
+    makeButton(dpadX - 55, dpadY, "<", () => (this.virtualDir.left = true), () => (this.virtualDir.left = false));
+    makeButton(dpadX + 55, dpadY, ">", () => (this.virtualDir.right = true), () => (this.virtualDir.right = false));
+
+    makeButton(700, 490, "PULO", () => (this.virtualJumpTap = true));
+    makeButton(700, 420, "C", () => (this.virtualSwitchTap = true));
   }
 
   spawnPlayer(x, y) {
@@ -328,10 +370,11 @@ class BiomeScene extends Phaser.Scene {
 
   readDirection() {
     const c = this.cursors;
-    if (c.up.isDown) return { dx: 0, dy: -1, facing: "back" };
-    if (c.down.isDown) return { dx: 0, dy: 1, facing: "front" };
-    if (c.left.isDown) return { dx: -1, dy: 0, facing: "left" };
-    if (c.right.isDown) return { dx: 1, dy: 0, facing: "right" };
+    const v = this.virtualDir;
+    if (c.up.isDown || v.up) return { dx: 0, dy: -1, facing: "back" };
+    if (c.down.isDown || v.down) return { dx: 0, dy: 1, facing: "front" };
+    if (c.left.isDown || v.left) return { dx: -1, dy: 0, facing: "left" };
+    if (c.right.isDown || v.right) return { dx: 1, dy: 0, facing: "right" };
     return null;
   }
 
@@ -381,10 +424,11 @@ class BiomeScene extends Phaser.Scene {
       this.player.setTexture(idleTextureKey(def, this.facing));
     }
 
-    if (Phaser.Input.Keyboard.JustDown(this.jumpKey) && !this.isJumping) {
+    if ((Phaser.Input.Keyboard.JustDown(this.jumpKey) || this.virtualJumpTap) && !this.isJumping) {
       this.isJumping = true;
       this.jumpElapsed = 0;
     }
+    this.virtualJumpTap = false;
 
     if (this.isJumping) {
       this.jumpElapsed += delta;
@@ -413,9 +457,10 @@ class BiomeScene extends Phaser.Scene {
       this.shadow.setAlpha(0.35);
     }
 
-    if (Phaser.Input.Keyboard.JustDown(this.switchKey)) {
+    if (Phaser.Input.Keyboard.JustDown(this.switchKey) || this.virtualSwitchTap) {
       this.switchCharacter();
     }
+    this.virtualSwitchTap = false;
   }
 
   checkExits() {
@@ -564,6 +609,9 @@ const config = {
   scale: {
     mode: Phaser.Scale.FIT, // redimensiona o canvas mantendo a proporção 800x600, sem esticar
     autoCenter: Phaser.Scale.CENTER_BOTH
+  },
+  input: {
+    activePointers: 3 // permite segurar uma seta do d-pad e tocar pulo/trocar personagem ao mesmo tempo
   },
   scene: [PreloadScene, valeScene, praiaScene]
 };
