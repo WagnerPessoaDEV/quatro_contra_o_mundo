@@ -561,6 +561,10 @@ const config = {
   width: 800,
   height: 600,
   backgroundColor: "#2d2d2d",
+  scale: {
+    mode: Phaser.Scale.FIT, // redimensiona o canvas mantendo a proporção 800x600, sem esticar
+    autoCenter: Phaser.Scale.CENTER_BOTH
+  },
   scene: [PreloadScene, valeScene, praiaScene]
 };
 
