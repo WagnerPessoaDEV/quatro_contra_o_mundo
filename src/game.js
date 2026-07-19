@@ -225,8 +225,8 @@ class PreloadScene extends Phaser.Scene {
 
   preload() {
     CHARACTERS.forEach((def) => preloadCharacter(this, def));
-    this.load.image("vale_bg", "Vale-do-eco-verde.png");
-    this.load.image("praia_bg", "praia-eco-brisa.png");
+    this.load.image("vale_bg", "mundos/Vale-do-eco-verde.png");
+    this.load.image("praia_bg", "mundos/praia-eco-brisa.png");
   }
 
   create() {
