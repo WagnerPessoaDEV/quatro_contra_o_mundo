@@ -5,87 +5,76 @@ const MOVE_DURATION = 600; // ms pra andar 1 tile — movimento em grade, estilo
 const JUMP_DURATION = 420; // ms
 const JUMP_HEIGHT = 22; // px de deslocamento visual no pico do pulo
 
-// "full": arte própria para as 4 direções (front/back/left/right), cada uma com sua contagem de frames de walk.
-//   OBS: os arquivos exportados como "ana_left_*"/"manu_left_*" na verdade retratam o personagem virado
-//   pra DIREITA (e os "*_right_*" pra ESQUERDA) — nomes trocados na exportação. Por isso os caminhos abaixo
-//   estão invertidos em relação ao nome do arquivo: a chave "left_*" aponta pro arquivo "*_right_*" e vice-versa,
-//   pra a arte carregada bater com a direção real.
-// "side": só existe pose de frente, de costas e de perfil (side) — perfil olha pra DIREITA por padrão,
-//   e é espelhado (flipX) pra cobrir a esquerda.
+// "side": pose de frente, de costas e de perfil (side) — perfil olha pra DIREITA por padrão,
+//   e é espelhado (flipX) pra cobrir a esquerda. Todos os personagens usam este esquema
+//   com 4 frames de caminhada extraídos das fichas de referência.
 const CHARACTERS = [
   {
     id: "ana",
-    label: "Ana Luisa",
-    kind: "full",
-    walkCounts: { front: 3, back: 3, left: 3, right: 2 },
+    label: "Ana Luísa",
+    color: "#e075a0",
+    portrait: "Ana luisa/ana luisa.png",
+    kind: "side",
+    walkCount: 4,
     textures: {
-      front_idle: "Ana luisa/ana_front_ide.png",
-      front_walk1: "Ana luisa/ana_front_walk1.png",
-      front_walk2: "Ana luisa/ana_front_walk2.png",
-      front_walk3: "Ana luisa/ana_front_walk3.png",
-      back_idle: "Ana luisa/ana_back_ide.png",
-      back_walk1: "Ana luisa/ana_back_walk1.png",
-      back_walk2: "Ana luisa/ana_back_walk2.png",
-      back_walk3: "Ana luisa/ana_back_walk3.png",
-      left_idle: "Ana luisa/ana_right_ide.png",
-      left_walk1: "Ana luisa/ana_right_walk1.png",
-      left_walk2: "Ana luisa/ana_right_walk2.png",
-      left_walk3: "Ana luisa/ana_right_walk3.png",
-      right_idle: "Ana luisa/ana_left_ide.png",
-      right_walk1: "Ana luisa/ana_left_walk1.png",
-      right_walk2: "Ana luisa/ana_left_walk2.png"
+      front_idle: "Ana luisa/frames_new/ana_front_idle.png",
+      back_idle:  "Ana luisa/frames_new/ana_back_idle.png",
+      side_idle:  "Ana luisa/frames_new/ana_side_idle.png",
+      side_walk1: "Ana luisa/frames_new/ana_side_walk1.png",
+      side_walk2: "Ana luisa/frames_new/ana_side_walk2.png",
+      side_walk3: "Ana luisa/frames_new/ana_side_walk3.png",
+      side_walk4: "Ana luisa/frames_new/ana_side_walk4.png",
     }
   },
   {
     id: "manu",
-    label: "Manu",
-    kind: "full",
-    walkCounts: { front: 3, back: 3, left: 3, right: 3 },
+    label: "Manuella",
+    color: "#7b4fbf",
+    portrait: "Manu/Manuella.png",
+    kind: "side",
+    walkCount: 4,
     textures: {
-      front_idle: "Manu/frames/manu_front_idle.png",
-      front_walk1: "Manu/frames/manu_front_walk1.png",
-      front_walk2: "Manu/frames/manu_front_walk2.png",
-      front_walk3: "Manu/frames/manu_front_walk3.png",
-      back_idle: "Manu/frames/manu_back_idle.png",
-      back_walk1: "Manu/frames/manu_back_walk1.png",
-      back_walk2: "Manu/frames/manu_back_walk2.png",
-      back_walk3: "Manu/frames/manu_back_walk3.png",
-      left_idle: "Manu/frames/manu_right_idle.png",
-      left_walk1: "Manu/frames/manu_right_walk1.png",
-      left_walk2: "Manu/frames/manu_right_walk2.png",
-      left_walk3: "Manu/frames/manu_right_walk3.png",
-      right_idle: "Manu/frames/manu_left_idle.png",
-      right_walk1: "Manu/frames/manu_left_walk1.png",
-      right_walk2: "Manu/frames/manu_left_walk2.png",
-      right_walk3: "Manu/frames/manu_left_walk3.png"
+      front_idle: "Manu/frames_new/manu_front_idle.png",
+      back_idle:  "Manu/frames_new/manu_back_idle.png",
+      side_idle:  "Manu/frames_new/manu_side_idle.png",
+      side_walk1: "Manu/frames_new/manu_side_walk1.png",
+      side_walk2: "Manu/frames_new/manu_side_walk2.png",
+      side_walk3: "Manu/frames_new/manu_side_walk3.png",
+      side_walk4: "Manu/frames_new/manu_side_walk4.png",
     }
   },
   {
     id: "miguel",
     label: "Miguel",
+    color: "#4a4a4a",
+    portrait: "Miguel/miguel.png",
     kind: "side",
+    walkCount: 4,
     textures: {
       front_idle: "Miguel/frames/miguel_front_idle.png",
-      back_idle: "Miguel/frames/miguel_back_idle.png",
-      side_idle: "Miguel/frames/miguel_side_idle.png",
+      back_idle:  "Miguel/frames/miguel_back_idle.png",
+      side_idle:  "Miguel/frames/miguel_side_idle.png",
       side_walk1: "Miguel/frames/miguel_side_walk1.png",
       side_walk2: "Miguel/frames/miguel_side_walk2.png",
       side_walk3: "Miguel/frames/miguel_side_walk3.png",
-      jump: "Miguel/frames/miguel_front_jump.png"
+      side_walk4: "Miguel/frames/miguel_side_walk4.png",
     }
   },
   {
     id: "valentim",
     label: "Valentim",
+    color: "#c0392b",
+    portrait: "Valemtin/valentim.png",
     kind: "side",
+    walkCount: 4,
     textures: {
       front_idle: "Valemtin/frames/valentim_front_idle.png",
-      back_idle: "Valemtin/frames/valentim_back_idle.png",
-      side_idle: "Valemtin/frames/valentim_side_idle.png",
+      back_idle:  "Valemtin/frames/valentim_back_idle.png",
+      side_idle:  "Valemtin/frames/valentim_side_idle.png",
       side_walk1: "Valemtin/frames/valentim_side_walk1.png",
       side_walk2: "Valemtin/frames/valentim_side_walk2.png",
       side_walk3: "Valemtin/frames/valentim_side_walk3.png",
-      jump: "Valemtin/frames/valentim_front_jump.png"
+      side_walk4: "Valemtin/frames/valentim_side_walk4.png",
     }
   }
 ];
@@ -177,6 +166,7 @@ function preloadCharacter(scene, def) {
   Object.entries(def.textures).forEach(([key, path]) => {
     scene.load.image(`${def.id}_${key}`, path);
   });
+  if (def.portrait) scene.load.image(`${def.id}_portrait`, def.portrait);
 }
 
 // frameRate calculado a partir do MOVE_DURATION: 1 ciclo de animação = 1 tile andado,
@@ -187,35 +177,24 @@ function walkFrameRate(frameCount) {
 }
 
 function createCharacterAnims(scene, def) {
-  if (def.kind === "full") {
-    ["front", "back", "left", "right"].forEach((dir) => {
-      const frames = [];
-      for (let i = 1; i <= def.walkCounts[dir]; i++) {
-        frames.push({ key: `${def.id}_${dir}_walk${i}` });
-      }
-      scene.anims.create({ key: `${def.id}-walk-${dir}`, frames, frameRate: walkFrameRate(frames.length), repeat: -1 });
-    });
-  } else {
-    const frames = [1, 2, 3].map((i) => ({ key: `${def.id}_side_walk${i}` }));
-    scene.anims.create({ key: `${def.id}-walk-side`, frames, frameRate: walkFrameRate(frames.length), repeat: -1 });
-  }
+  const count = def.walkCount || 4;
+  const frames = Array.from({ length: count }, (_, i) => ({ key: `${def.id}_side_walk${i + 1}` }));
+  scene.anims.create({ key: `${def.id}-walk-side`, frames, frameRate: walkFrameRate(frames.length), repeat: -1 });
 }
 
 function idleTextureKey(def, facing) {
-  if (def.kind === "full") return `${def.id}_${facing}_idle`;
   if (facing === "front" || facing === "back") return `${def.id}_${facing}_idle`;
   return `${def.id}_side_idle`;
 }
 
 function walkAnimKey(def, facing) {
-  if (def.kind === "full") return `${def.id}-walk-${facing}`;
   if (facing === "left" || facing === "right") return `${def.id}-walk-side`;
-  return null;
+  return null; // sem anim de walk para frente/costas — fica no idle
 }
 
 function isFlipped(def, facing) {
-  // a arte "side" do Miguel/Valentim olha pra DIREITA por padrão, então espelha pra esquerda.
-  return def.kind === "side" && facing === "left";
+  // arte "side" olha pra DIREITA por padrão; espelha pra esquerda
+  return facing === "left";
 }
 
 class PreloadScene extends Phaser.Scene {
@@ -291,6 +270,7 @@ class BiomeScene extends Phaser.Scene {
       .setScrollFactor(0)
       .setDepth(1000);
     this.updateLabel();
+    this.createCharacterHUD();
   }
 
   // controles na tela pra celular/tablet (sem teclado) — só aparecem em dispositivos touch.
@@ -337,6 +317,64 @@ class BiomeScene extends Phaser.Scene {
     makeButton(w - margin, h - margin - 70, "C", () => (this.virtualSwitchTap = true));
   }
 
+  // HUD com mini-retratos dos 4 personagens no canto inferior esquerdo.
+  // O personagem ativo fica com borda colorida e tamanho maior.
+  createCharacterHUD() {
+    this.hudObjects = [];
+    const SLOT = 64;
+    const PAD = 8;
+    const MARGIN = 12;
+
+    CHARACTERS.forEach((def, i) => {
+      const x = MARGIN + i * (SLOT + PAD) + SLOT / 2;
+      const y = this.scale.height - MARGIN - SLOT / 2;
+      const isActive = i === this.charIndex;
+
+      // background slot
+      const bg = this.add.rectangle(x, y, SLOT, SLOT, 0x000000, 0.55)
+        .setScrollFactor(0).setDepth(999);
+
+      // portrait image
+      const portrait = this.add.image(x, y, `${def.id}_portrait`)
+        .setScrollFactor(0).setDepth(1000)
+        .setDisplaySize(SLOT - 4, SLOT - 4)
+        .setCrop(0, 0, 1254, 1254); // crop to square portrait area
+
+      // colored border (active = bright, inactive = dim)
+      const border = this.add.rectangle(x, y, SLOT, SLOT)
+        .setStrokeStyle(isActive ? 3 : 1, Phaser.Display.Color.HexStringToColor(def.color).color, isActive ? 1 : 0.4)
+        .setFillStyle(0x000000, 0)
+        .setScrollFactor(0).setDepth(1001);
+
+      // label
+      const label = this.add.text(x, y + SLOT / 2 - 8, def.label.split(" ")[0], {
+        fontFamily: "monospace", fontSize: "9px", color: "#ffffff",
+        backgroundColor: "#000000aa", padding: { x: 2, y: 1 }
+      }).setOrigin(0.5, 1).setScrollFactor(0).setDepth(1002);
+
+      // number hint
+      this.add.text(x - SLOT/2 + 4, y - SLOT/2 + 2, `${i+1}`, {
+        fontFamily: "monospace", fontSize: "10px", color: def.color
+      }).setScrollFactor(0).setDepth(1002);
+
+      this.hudObjects.push({ bg, portrait, border, label });
+    });
+  }
+
+  updateCharacterHUD() {
+    if (!this.hudObjects) return;
+    CHARACTERS.forEach((def, i) => {
+      const { border } = this.hudObjects[i];
+      const isActive = i === this.charIndex;
+      border.setStrokeStyle(isActive ? 3 : 1, Phaser.Display.Color.HexStringToColor(def.color).color, isActive ? 1 : 0.4);
+    });
+  }
+
+  destroyCharacterHUD() {
+    (this.hudObjects || []).forEach(o => Object.values(o).forEach(obj => obj.destroy()));
+    this.hudObjects = [];
+  }
+
   destroyTouchControls() {
     (this.touchControlObjects || []).forEach((obj) => obj.destroy());
     this.touchControlObjects = [];
@@ -365,6 +403,7 @@ class BiomeScene extends Phaser.Scene {
     this.player.destroy();
     this.spawnPlayer(x, y);
     this.updateLabel();
+    this.updateCharacterHUD();
   }
 
   updateLabel() {
@@ -458,11 +497,10 @@ class BiomeScene extends Phaser.Scene {
       const progress = Phaser.Math.Clamp(this.jumpElapsed / JUMP_DURATION, 0, 1);
       const offset = Math.sin(progress * Math.PI) * JUMP_HEIGHT;
 
-      if (def.textures.jump) {
-        this.player.anims.stop();
-        this.player.setTexture(`${def.id}_jump`);
-        this.player.setFlipX(false);
-      }
+      // usa o side_idle durante o pulo (pode ser substituído por um frame de pulo futuro)
+      this.player.anims.stop();
+      this.player.setTexture(`${def.id}_side_idle`);
+      this.player.setFlipX(isFlipped(def, this.facing));
 
       const groundY = this.player.y;
       this.player.y = groundY - offset;
